@@ -1,5 +1,5 @@
 ---
-title: "Dashboard!!"
+title: "Dashboard"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
@@ -8,65 +8,91 @@ output:
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
-
 library(tidyverse)
 library(p8105.datasets)
 library(plotly)
 ```
 
-```{r}
-data("nyc_airbnb")
 
-nyc_airbnb = 
-  nyc_airbnb |> 
-  mutate(rating = review_scores_location / 2) |> 
-  select(
-    rating, neighbourhood_group, neighbourhood, 
-    room_type, lat, long, price) |> 
-  drop_na(rating) |> 
-  filter(
-    neighbourhood_group == "Manhattan", 
-    room_type == "Entire home/apt", 
-    price %in% 100:500
+```{r load_data}
+data(rest_inspec)
+rest_inspec =
+  rest_inspec |> 
+  mutate(
+    boro = na_if(boro, "Missing"),
+    cuisine_description = na_if(cuisine_description, "Not Listed/Not Applicable"),
+    cuisine_description = case_match(
+      cuisine_description, 
+      "CafÃ©/Coffee/Tea" ~ "Cafe/Coffee/Tea",
+      "Latin (Cuban, Dominican, Puerto Rican, South & Central American)" ~ "Latin",
+      .default = cuisine_description
+    )
   )
 ```
 
-Column {data-width=650}
+Column {data-width=500}
 -----------------------------------------------------------------------
 
 ### Chart A
 
 ```{r}
-nyc_airbnb |> 
-  mutate(neighbourhood = fct_reorder(neighbourhood, price)) |> 
-  plot_ly(
-    x = ~neighbourhood, y = ~price, color = ~neighbourhood,
-    type = "box", colors = "viridis")
+top_restaurants =
+  rest_inspec |> 
+  group_by(dba) |> 
+  summarise(violation_ct = n()) |> 
+  arrange(desc(violation_ct)) |> 
+  slice(1:15) |> 
+  pull(dba) 
+
+top_data =
+  rest_inspec |> 
+  filter(dba %in% top_restaurants) |> 
+  select(dba, score, violation_description, boro)
+
+plot_ly(top_data, x = ~dba, y = ~score, type = "scatter", mode = "markers",
+        color = ~boro,
+        text = ~violation_description, hoverinfo = "text") |> 
+  layout(title = "Scores of Top Restaurants by Violation Count",
+         xaxis = list(title = "Restaurant"),
+         yaxis = list(title = "Score"))
 ```
 
-Column {data-width=350}
+Column {data-width=500}
 -----------------------------------------------------------------------
 
 ### Chart B
 
 ```{r}
-nyc_airbnb |> 
-  mutate(
-    text_label = 
-      str_c("Price: ", price, "\nNeighborhood: ", neighbourhood)) |> 
-  plot_ly(
-    x = ~lat, y = ~long, color = ~price, text = ~text_label,
-    type = "scatter", mode = "markers", alpha = 0.5
-  )
+top15 = 
+  rest_inspec |> 
+  group_by(dba) |> 
+  summarise(violation_ct = n()) |> 
+  arrange(desc(violation_ct)) |> 
+  slice(1:15) 
+top15 |> 
+  mutate(dba = fct_reorder(dba, violation_ct)) |> 
+  plot_ly(x = ~dba, y = ~violation_ct, type = "bar", 
+          color = ~dba, colors = "viridis") |> 
+  layout(title = "Restaurants with the Most DOHMH Violations",
+         yaxis = list(title = 'Number of Violations'), 
+         xaxis = list(title = 'Restaurant')
+         )
 ```
 
 ### Chart C
 
 ```{r}
-nyc_airbnb |> 
-  count(neighbourhood) |> 
-  mutate(neighbourhood = fct_reorder(neighbourhood, n)) |> 
+rest_inspec |> 
+  group_by(cuisine_description) |> 
+  drop_na(grade) |> 
+  filter(!(grade %in% c("Not Yet Graded", "P", "Z"))) |> 
+  filter(!(cuisine_description %in% c("Bottled beverages, including water, sodas, juices, etc.",
+                                      "Other"))) |> 
   plot_ly(
-    x = ~neighbourhood, y = ~n, 
-    type = "bar")
+    x = ~cuisine_description, y = ~score, color = ~grade, type = "box") |> 
+  layout(title = "Distribution of Health Inspection Score by Cuisine",
+         yaxis = list(title = 'Score'), 
+         xaxis = list(title = 'Cuisine'),
+         legend = list(title=list(text='<b> Health Inspection Grade </b>')))
+  
 ```
