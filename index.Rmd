@@ -1,0 +1,31 @@
+---
+title: "Welcome to my website"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+### Hi, I'm Malika
+
+<img src="images/profile.jpg" style="width:75%">
+
+* M.S. Biostatistics Student at Columbia Mailman School of Public Health
+* B.A. Data Science with a Concentration in Biology from Wellesley College
+
+
+I am in my first year of the M.S. Biostatistics 
+program at Columbia's Mailman School of Public Health on the Theory and 
+Methods track. I'm interested in:
+
+* causal inference methods
+* genomics  
+* women's reproductive health
+* clinial trials
+* wearable device technology
+
+Please see my [resume here](resume.html)
+
+In my free time, I like to give *honest* reviews on Beli and cook for my friends! 
+
+My favorite website growing up was [Buzzfeed Quizzes](https://www.buzzfeed.com/quizzes)
