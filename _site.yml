@@ -1,0 +1,16 @@
+name: "Yay internet!"
+output_dir: "."
+navbar:
+  title: "Best page ever"
+  right:
+    - text: "Home"
+      href: index.html
+    - text: "Dashboard"
+      href: dashboard.html
+    - icon: fa-envelope fa-lg
+      href: mailto:<mt3775@cumc.columbia.edu>
+    - icon: fa-github fa-lg
+      href: http://github.com/malikatop/
+output:
+  html_document:
+    theme: flatly
